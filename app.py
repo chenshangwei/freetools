@@ -1,74 +1,66 @@
-from typing import Dict
-import os
-import flet
-os.environ['FLET_SECRET_KEY'] = '12e21e21dc3'
-from flet import (
-    Column,
-    ElevatedButton,
-    FilePicker,
-    FilePickerResultEvent,
-    FilePickerUploadEvent,
-    FilePickerUploadFile,
-    Page,
-    ProgressRing,
-    Ref,
-    Row,
-    Text,
-    icons,
-)
+# -*- coding: utf-8 -*-
+import sys
+from PySide6.QtCore import *
+from PySide6.QtGui import *
+from PySide6.QtWidgets import *
 
 
-def main(page: Page):
-    prog_bars: Dict[str, ProgressRing] = {}
-    files = Ref[Column]()
-    upload_button = Ref[ElevatedButton]()
+class StackedExample(QWidget):
+    def __init__(self):
+        super(StackedExample, self).__init__()
+        self.setGeometry(300, 50, 10, 10)
+        self.setWindowTitle('StackedWidget 例子')
 
-    def file_picker_result(e: FilePickerResultEvent):
-        upload_button.current.disabled = True if e.files is None else False
-        prog_bars.clear()
-        files.current.controls.clear()
-        if e.files is not None:
-            for f in e.files:
-                prog = ProgressRing(value=0, bgcolor="#eeeeee", width=20, height=20)
-                prog_bars[f.name] = prog
-                files.current.controls.append(Row([prog, Text(f.name)]))
-        page.update()
+        self.leftlist = QListWidget()
+        self.leftlist.insertItem(0, '联系方式')
+        self.leftlist.insertItem(1, '个人信息')
+        self.leftlist.insertItem(2, '教育程度')
+        self.stack1 = QWidget()
+        self.stack2 = QWidget()
+        self.stack3 = QWidget()
+        self.stack1UI()
+        self.stack2UI()
+        self.stack3UI()
+        self.Stack = QStackedWidget(self)
+        self.Stack.addWidget(self.stack1)
+        self.Stack.addWidget(self.stack2)
+        self.Stack.addWidget(self.stack3)
+        hbox = QHBoxLayout(self)
+        hbox.addWidget(self.leftlist)
+        hbox.addWidget(self.Stack)
+        self.setLayout(hbox)
 
-    def on_upload_progress(e: FilePickerUploadEvent):
-        prog_bars[e.file_name].value = e.progress
-        prog_bars[e.file_name].update()
+        self.leftlist.currentRowChanged.connect(self.display)
 
-    file_picker = FilePicker(on_result=file_picker_result, on_upload=on_upload_progress)
+    def stack1UI(self):
+        layout = QFormLayout()
+        layout.addRow("姓名", QLineEdit())
+        layout.addRow("地址", QLineEdit())
+        self.stack1.setLayout(layout)
 
-    def upload_files(e):
-        uf = []
-        if file_picker.result is not None and file_picker.result.files is not None:
-            for f in file_picker.result.files:
-                uf.append(
-                    FilePickerUploadFile(
-                        f.name,
-                        upload_url=page.get_upload_url(f.name, 600),
-                    )
-                )
-            file_picker.upload(uf)
+    def stack2UI(self):
+        layout = QFormLayout()
+        sex = QHBoxLayout()
+        sex.addWidget(QRadioButton("男"))
+        sex.addWidget(QRadioButton("女"))
+        layout.addRow(QLabel("性别"), sex)
+        layout.addRow("生日", QLineEdit())
+        self.stack2.setLayout(layout)
 
-    # hide dialog in a overlay
-    page.overlay.append(file_picker)
+    def stack3UI(self):
+        layout = QHBoxLayout()
+        layout.addWidget(QLabel("科目"))
+        layout.addWidget(QCheckBox("物理"))
+        layout.addWidget(QCheckBox("高数"))
+        self.stack3.setLayout(layout)
 
-    page.add(
-        ElevatedButton(
-            "Select files...",
-            icon=icons.FOLDER_OPEN,
-            on_click=lambda _: file_picker.pick_files(allow_multiple=True),
-        ),
-        Column(ref=files),
-        ElevatedButton(
-            "Upload",
-            ref=upload_button,
-            icon=icons.UPLOAD,
-            on_click=upload_files,
-            disabled=True,
-        ),
-    )
-print(os.getenv('FLET_SECRET_KEY'))
-flet.app(target=main, upload_dir="uploads",view=flet.WEB_BROWSER) #, view=flet.WEB_BROWSER
+    def display(self, i):
+        self.Stack.setCurrentIndex(i)
+
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    demo = StackedExample()
+    demo.show()
+    sys.exit(app.exec_())
+

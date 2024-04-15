@@ -24,8 +24,8 @@ def main(page: ft.Page):
         print('pdf_path',pdfFile['path'])
         doc = fitz.open(pdfFile['path'])
         for page in doc:
-            pix = page.get_pixmap(dpi=200)
-            pix.save("./uploads/page-%i.png" % page.number)
+            pix = page.get_pixmap(dpi=200) #,alpha=True
+            pix.save("./%s-%i.png" % (pdfFile['name'],page.number))
 
     page.add(
         ft.Row(
